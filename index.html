@@ -36,8 +36,7 @@
 <body>
     <nav class="navbar navbar-expand-lg bg-body-tertiary">
         <div class="container-fluid">
-            <a class="navbar-brand" href="#"><i class="fa-solid fa-map-location-dot"></i> Peta Penduduk Penajam Paser
-                Utara</a>
+            <a class="navbar-brand" href="#"><i class="fa-solid fa-map-location-dot"></i> Peta Kota Bekasi</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
                 data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
                 aria-label="Toggle navigation">
@@ -114,7 +113,7 @@
         </div>
     </div>
 
-    <!-- Modal Feature -->
+    <!-- Modal Feature
     <div class="modal fade" id="featureModal" tabindex="-1" aria-labelledby="featureModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -128,9 +127,9 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                     <!-- <button type="button" class="btn btn-primary">Save changes</button> -->
-                </div>
-            </div>
-        </div>
+    </div>
+    </div>
+    </div> -->
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
@@ -148,9 +147,12 @@
     <!-- script untuk memanggil plugin leaflet default -->
     <script src="plugin/Leaflet.defaultextent-master/dist/leaflet.defaultextent.js"></script>
 
+    <!-- Menghubungkan leaflet dengan Geoserver -->
+    <script src="lib/L.Geoserver.js"></script>
+
     <script>
         // Inisialisasi peta
-        var map = L.map("map").setView([-1.2015237, 116.5567017], 10);
+        var map = L.map("map").setView([-6.2572912567800785, 106.9781751997099], 11);
 
         // Tile Layer Base Map
         var basemap = L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -161,153 +163,170 @@
         // Menambahkan basemap ke dalam peta
         basemap.addTo(map);
 
+        // wms request
+        var wmsLayer = L.Geoserver.wms("http://localhost:8080/geoserver/wms", {
+            layers: "pgweb_acara10:ADMINISTRASIDESA_AR_25K",
+            transparent: true,
+        });
+        wmsLayer.addTo(map);
+
+        var layer2 = L.Geoserver.wms("http://localhost:8080/geoserver/wms", {
+            layers : "pgweb_acara10:data_kecamatan"
+        })
+        layer2.addTo(map);
+
+        var layerLegend = L.Geoserver.legend("http://localhost:8080/geoserver/wms", {
+            layers: "pgweb_acara10:ADMINISTRASIDESA_AR_25K",
+        });
+        layerLegend.addTo(map);
+
         // GeoJSON Point Sarana Prasarana
-        var sarana_prasarana = L.geoJSON(null, {
-            // Style
-            pointToLayer: function (feature, latlng) {
-                return L.marker(latlng, {
-                    icon: L.icon({
-                        iconUrl: "ikon/home_marker.png", // icon marker
-                        iconSize: [48, 48], // ukuran icon
-                        iconAnchor: [24, 48], // posisi icon terhadap titik (point)
-                        popupAnchor: [0, -48], // posisi popup terhadap icon
-                        tooltipAnchor: [-16, -30], // posisi tooltip terhadap icon
-                    }),
-                });
-            },
+        // var sarana_prasarana = L.geoJSON(null, {
+        //     // Style
+        //     pointToLayer: function (feature, latlng) {
+        //         return L.marker(latlng, {
+        //             icon: L.icon({
+        //                 iconUrl: "ikon/home_marker.png", // icon marker
+        //                 iconSize: [48, 48], // ukuran icon
+        //                 iconAnchor: [24, 48], // posisi icon terhadap titik (point)
+        //                 popupAnchor: [0, -48], // posisi popup terhadap icon
+        //                 tooltipAnchor: [-16, -30], // posisi tooltip terhadap icon
+        //             }),
+        //         });
+        //     },
 
-            // onEachFeature
-            onEachFeature: function (feature, layer) {
-                // variable popup content
-                var popup_content = "Nama: " + feature.properties.SARANA_PRA + "<br>" +
-                    "Koordinat: " + feature.geometry.coordinates[1] + ", " + feature.geometry.coordinates[0];
+        //     // onEachFeature
+        //     onEachFeature: function (feature, layer) {
+        //         // variable popup content
+        //         var popup_content = "Nama: " + feature.properties.SARANA_PRA + "<br>" +
+        //             "Koordinat: " + feature.geometry.coordinates[1] + ", " + feature.geometry.coordinates[0];
 
-                layer.on({
-                    click: function (e) {
-                        // sarana_prasarana.bindPopup(popup_content);
+        //         layer.on({
+        //             click: function (e) {
+        //                 // sarana_prasarana.bindPopup(popup_content);
 
-                        //Menampilkan feature modal
-                        $("#featureModalTitle").html("Rincian Sarana Prasana");
-                        $("#featureModalBody").html(popup_content);
-                        $("#featureModal").modal("show");
-                    },
+        //                 //Menampilkan feature modal
+        //                 $("#featureModalTitle").html("Rincian Sarana Prasana");
+        //                 $("#featureModalBody").html(popup_content);
+        //                 $("#featureModal").modal("show");
+        //             },
 
-                    mouseover: function (e) {
-                        sarana_prasarana.bindTooltip(feature.properties.SARANA_PRA, {
-                            direction: "top",
-                            sticky: false,
-                        });
-                    },
-                });
-            },
+        //             mouseover: function (e) {
+        //                 sarana_prasarana.bindTooltip(feature.properties.SARANA_PRA, {
+        //                     direction: "top",
+        //                     sticky: false,
+        //                 });
+        //             },
+        //         });
+        //     },
 
-        });
+        // });
 
-        $.getJSON("data/sarana_prasana.geojson", function (data) {
-            sarana_prasarana.addData(data); // Menambahkan data ke dalam GeoJSON Point Sarana Prasarana
-            map.addLayer(sarana_prasarana); // Menambahkan GeoJSON Point Sarana Prasarana ke dalam peta
-        });
-
-
-        // GeoJSON Garis
-        map.createPane('paneJalan');
-        map.getPane("paneJalan").style.zIndex = 401;
-        var jalan = L.geoJSON(null, {
-
-            pane: 'paneJalan',
-
-            // Style
-            style: function (feature) {
-                return {
-                    color: "grey",
-                    opacity: 1,
-                    weight: 2,
-                };
-            },
-
-            // OnEachFeatures
-
-            onEachFeature: function (feature, layer) {
-                // variable popup content
-                var popup_content = "Fungsi: " + feature.properties.FUNGSI_JAL + "<br>" +
-                    "Panjang (m): " + feature.properties.panjang_m;
-
-                layer.on({
-                    click: function (e) {
-                        // jalan.bindPopup(popup_content);
-
-                        //Menampilkan feature modal
-                        $("#featureModalTitle").html("Rincian Ruas Jalan");
-                        $("#featureModalBody").html(popup_content);
-                        $("#featureModal").modal("show");
-                    },
-
-                    mouseover: function (e) {
-                        jalan.bindTooltip(feature.properties.FUNGSI_JAL, {
-                            direction: "auto",
-                            sticky: true,
-                        });
-                    },
-                });
-            },
-
-        });
-
-        $.getJSON("data/jalan.geojson", function (data) {
-            jalan.addData(data); // Menambahkan data ke dalam GeoJSON Polyline Jalan
-            map.addLayer(jalan); // Menambahkan GeoJSON Polyline Jalan ke dalam peta
-        });
+        // $.getJSON("data/sarana_prasana.geojson", function (data) {
+        //     sarana_prasarana.addData(data); // Menambahkan data ke dalam GeoJSON Point Sarana Prasarana
+        //     map.addLayer(sarana_prasarana); // Menambahkan GeoJSON Point Sarana Prasarana ke dalam peta
+        // });
 
 
-        // Mengatur simbologi untuk poligon jumlah penduduk
-        var symbologyGraduated = { "Tinggi": "#31a354", "Sedang": "#a1d99b", "Rendah": "#f7fcb9" };
+        // // GeoJSON Garis
+        // map.createPane('paneJalan');
+        // map.getPane("paneJalan").style.zIndex = 401;
+        // var jalan = L.geoJSON(null, {
 
-        // GeoJSON Polygon Jumlah Penduduk
-        map.createPane('paneJumlahPenduduk');
-        map.getPane("paneJumlahPenduduk").style.zIndex = 301;
-        var jumlah_penduduk = L.geoJSON(null, {
-            pane: 'paneJumlahPenduduk',
+        //     pane: 'paneJalan',
 
-            // Style
-            style: function (feature) {
-                return {
-                    color: "gray",
-                    opacity: 1,
-                    weight: 1,
-                    fillColor: symbologyGraduated[feature.properties.KELAS],
-                    fillOpacity: 1,
-                };
-            },
+        //     // Style
+        //     style: function (feature) {
+        //         return {
+        //             color: "grey",
+        //             opacity: 1,
+        //             weight: 2,
+        //         };
+        //     },
 
-            // onEachFeature
-            onEachFeature: function (feature, layer) {
-                // variable popup content
-                var popup_content = "Kecamatan: " + feature.properties.KECAMATAN + "<br>" + "Desa: " + feature.properties.DESA_KELUR + "<br>" + "Jumlah Penduduk: " + feature.properties.JML_PDDK_1;
+        //     // OnEachFeatures
 
-                layer.on({
-                    click: function (e) {
-                        // jumlah_penduduk.bindPopup(popup_content);
+        //     onEachFeature: function (feature, layer) {
+        //         // variable popup content
+        //         var popup_content = "Fungsi: " + feature.properties.FUNGSI_JAL + "<br>" +
+        //             "Panjang (m): " + feature.properties.panjang_m;
 
-                        //Menampilkan feature modal jml pddk
-                        $("#featureModalTitle").html("Jumlah Penduduk");
-                        $("#featureModalBody").html(popup_content);
-                        $("#featureModal").modal("show");
-                    },
-                    mouseover: function (e) {
-                        jumlah_penduduk.bindTooltip(feature.properties.DESA_KELUR, {
-                            direction: "auto",
-                            sticky: true,
-                        });
-                    },
-                });
-            },
+        //         layer.on({
+        //             click: function (e) {
+        //                 // jalan.bindPopup(popup_content);
 
-        });
+        //                 //Menampilkan feature modal
+        //                 $("#featureModalTitle").html("Rincian Ruas Jalan");
+        //                 $("#featureModalBody").html(popup_content);
+        //                 $("#featureModal").modal("show");
+        //             },
 
-        $.getJSON("data/jumlah_penduduk.geojson", function (data) {
-            jumlah_penduduk.addData(data); // Menambahkan data ke dalam GeoJSON Polygon Jumlah Penduduk
-            map.addLayer(jumlah_penduduk); // Menambahkan GeoJSON Polygon Jumlah Penduduk ke dalam peta
-        });
+        //             mouseover: function (e) {
+        //                 jalan.bindTooltip(feature.properties.FUNGSI_JAL, {
+        //                     direction: "auto",
+        //                     sticky: true,
+        //                 });
+        //             },
+        //         });
+        //     },
+
+        // });
+
+        // $.getJSON("data/jalan.geojson", function (data) {
+        //     jalan.addData(data); // Menambahkan data ke dalam GeoJSON Polyline Jalan
+        //     map.addLayer(jalan); // Menambahkan GeoJSON Polyline Jalan ke dalam peta
+        // });
+
+
+        // // Mengatur simbologi untuk poligon jumlah penduduk
+        // var symbologyGraduated = { "Tinggi": "#31a354", "Sedang": "#a1d99b", "Rendah": "#f7fcb9" };
+
+        // // GeoJSON Polygon Jumlah Penduduk
+        // map.createPane('paneJumlahPenduduk');
+        // map.getPane("paneJumlahPenduduk").style.zIndex = 301;
+        // var jumlah_penduduk = L.geoJSON(null, {
+        //     pane: 'paneJumlahPenduduk',
+
+        //     // Style
+        //     style: function (feature) {
+        //         return {
+        //             color: "gray",
+        //             opacity: 1,
+        //             weight: 1,
+        //             fillColor: symbologyGraduated[feature.properties.KELAS],
+        //             fillOpacity: 1,
+        //         };
+        //     },
+
+        // onEachFeature
+        //     onEachFeature: function (feature, layer) {
+        //         // variable popup content
+        //         var popup_content = "Kecamatan: " + feature.properties.KECAMATAN + "<br>" + "Desa: " + feature.properties.DESA_KELUR + "<br>" + "Jumlah Penduduk: " + feature.properties.JML_PDDK_1;
+
+        //         layer.on({
+        //             click: function (e) {
+        //                 // jumlah_penduduk.bindPopup(popup_content);
+
+        //                 //Menampilkan feature modal jml pddk
+        //                 $("#featureModalTitle").html("Jumlah Penduduk");
+        //                 $("#featureModalBody").html(popup_content);
+        //                 $("#featureModal").modal("show");
+        //             },
+        //             mouseover: function (e) {
+        //                 jumlah_penduduk.bindTooltip(feature.properties.DESA_KELUR, {
+        //                     direction: "auto",
+        //                     sticky: true,
+        //                 });
+        //             },
+        //         });
+        //     },
+
+        // });
+
+        // $.getJSON("data/jumlah_penduduk.geojson", function (data) {
+        //     jumlah_penduduk.addData(data); // Menambahkan data ke dalam GeoJSON Polygon Jumlah Penduduk
+        //     map.addLayer(jumlah_penduduk); // Menambahkan GeoJSON Polygon Jumlah Penduduk ke dalam peta
+        // });
 
         // Control Layer
         var baseMaps = {
@@ -315,9 +334,7 @@
         };
 
         var overlayMaps = {
-            "Sarana Prasarana": sarana_prasarana,
-            "Jalan": jalan,
-            "Jumlah Penduduk": jumlah_penduduk,
+
         };
 
         var controllayer = L.control.layers(baseMaps, overlayMaps);
@@ -329,7 +346,7 @@
         //Search Control
         var searchControl = new L.Control.Search({
             layer: jumlah_penduduk,
-            propertyName: 'DESA_KELUR',
+            propertyName: '',
             marker: false,
             moveToLocation: function (latlng, title, map) {
                 //map.fitBounds( latlng.layer.getBounds() );
@@ -338,40 +355,40 @@
             }
         });
 
-        searchControl.on('search:locationfound', function (e) {
+        // searchControl.on('search:locationfound', function (e) {
 
-            //console.log('search:locationfound', );
+        //     //console.log('search:locationfound', );
 
-            //map.removeLayer(this._markerSearch)
+        //     //map.removeLayer(this._markerSearch)
 
-            e.layer.setStyle({ fillColor: '#3f0', color: '#0f0' });
-            if (e.layer._popup)
-                e.layer.openPopup();
+        //     e.layer.setStyle({ fillColor: '#3f0', color: '#0f0' });
+        //     if (e.layer._popup)
+        //         e.layer.openPopup();
 
-        }).on('search:collapsed', function (e) {
+        // }).on('search:collapsed', function (e) {
 
-            jumlah_penduduk.eachLayer(function (layer) {	//restore feature color
-                jumlah_penduduk.resetStyle(layer);
-            });
-        });
+        //     jumlah_penduduk.eachLayer(function (layer) {	//restore feature color
+        //         jumlah_penduduk.resetStyle(layer);
+        //     });
+        // });
 
         map.addControl(searchControl);  //inizialize search control
 
-        // Logo watermark
-        L.Control.Watermark = L.Control.extend({
-            onAdd: function (map) {
-                var img = L.DomUtil.create('img');
+        // // Logo watermark
+        // L.Control.Watermark = L.Control.extend({
+        //     onAdd: function (map) {
+        //         var img = L.DomUtil.create('img');
 
-                img.src = 'ikon/logo-sv-ugm.png';
-                img.style.width = '200px';
+        //         img.src = 'ikon/logo-sv-ugm.png';
+        //         img.style.width = '200px';
 
-                return img;
-            },
+        //         return img;
+        //     },
 
-            onRemove: function (map) {
-                // Nothing to do here
-            }
-        });
+        //     onRemove: function (map) {
+        //         // Nothing to do here
+        //     }
+        // });
 
         L.control.watermark = function (opts) {
             return new L.Control.Watermark(opts);
